@@ -385,9 +385,15 @@ function openInEditor(fileUrl, lineNumber, columnNumber, commandLine) {
                 replace('%f', fileUrlToPath(fileUrl));
         });
 
-    executable.initWithPath(argv.shift());
-    process.init(executable);
-    process.run(false, argv, argv.length);
+    var editorPath = argv.shift();
+    executable.initWithPath(editorPath);
+    try {
+        process.init(executable);
+        process.run(false, argv, argv.length);
+    } catch(e) {
+        window.alert('Error starting editor. (' + e.name + ')\n' +
+                     'Please check "extensions.mozunit.editor" in about:config and ensure it points to a valid executable.');
+    }
 }
 
 function showSource(traceLine) {
