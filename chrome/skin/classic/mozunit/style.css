@@ -1,12 +1,12 @@
 .test-failure
 {
-  list-style-image: url("chrome://mozlab/skin/mozunit/bug.png");
+  list-style-image: url("chrome://mozunit/skin/bug.png");
   -moz-image-region: rect(0px 35px 45px 0px);
   }
 
 .test-error
 {
-  list-style-image: url("chrome://mozlab/skin/mozunit/bomb.png");
+  list-style-image: url("chrome://mozunit/skin/bomb.png");
   }
 
 .test-success

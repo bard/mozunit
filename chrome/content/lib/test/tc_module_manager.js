@@ -1,5 +1,5 @@
-var Specification = mozlab.mozunit.Specification;
-var assert = mozlab.mozunit.assertions;
+var Specification = mozunit.Specification;
+var assert = mozunit.assertions;
 
 var spec = new Specification('Module Manager');
 
