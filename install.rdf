@@ -14,7 +14,7 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
         <em:minVersion>1.5</em:minVersion>
-        <em:maxVersion>3.0.*</em:maxVersion>
+        <em:maxVersion>3.1.*</em:maxVersion>
       </Description>
     </em:targetApplication>
 
@@ -61,7 +61,7 @@
     <em:name>MozUnit</em:name>
     <em:description>TDD-framework for Mozilla</em:description>
     <em:creator>Massimiliano Mirra</em:creator>
-    <em:homepageURL>http://hyperstruct.net/projects/mozunit</em:homepageURL>
+    <em:homepageURL>http://github.com/bard/mozunit/wikis/home</em:homepageURL>
     <em:updateURL>http://repo.hyperstruct.net/mozunit/update.rdf</em:updateURL>
     <em:updateKey>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEIAFfynLWE9Kh6D7bbe0yM3gHyZKikhDkVK1n/3E8RngyNDAnjVb4W7M6XRpJVWjNLObB+CA+izRCUwvWOWzdIA1409od1gN9cjWU6c6X68AX/aGW7/LH30NCGcQcmw/MUtlPUQgI1agOJIIqCVRZh9npef/Vdtr3AxjsKtK4QwIDAQAB</em:updateKey>
   </Description>
