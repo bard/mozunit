@@ -36,28 +36,38 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-function equals(x, y) {
+var EXPORTED_SYMBOLS = [
+    'assert',
+    'AssertionFailed'
+];
+
+
+// ----------------------------------------------------------------------
+
+var assert = {};
+
+assert.equals = function(x, y) {
     if(y != x)
         throw new AssertionFailed(
             'Expected ' + x + ', got ' + y + '.',
             Components.stack.caller);
 }
 
-function notEquals(x, y) {
+assert.notEquals = function(x, y) {
     if(y == x)
         throw new AssertionFailed(
             'Expected ' + x + ' and ' + y + ' to be different, but they are equal.',
             Components.stack.caller);
 }
 
-function isTrue(x) {
+assert.isTrue = function(x) {
     if(!x)
         throw new AssertionFailed(
             'Expected true or equivalent, got ' + x,
             Components.stack.caller);
 }
 
-function isDefined(x) {
+assert.isDefined = function(x) {
     if(x == null ||
        x == undefined)
         throw new AssertionFailed(
@@ -65,28 +75,28 @@ function isDefined(x) {
             Components.stack.caller);
 }
 
-function isUndefined(x) {
+assert.isUndefined = function(x) {
     if(x != undefined)
         throw new AssertionFailed(
             'Expected value to be undefined, was defined',
             Components.stack.caller);
 }
 
-function isFalse(x) {
+assert.isFalse = function(x) {
     if(x)
         throw new AssertionFailed(
             'Expected false or equivalent, got ' + x,
             Components.stack.caller);
 }
 
-function isNull(x) {
+assert.isNull = function(x) {
     if(x != null)
         throw new AssertionFailed(
             'Expected null, got ' + x,
             Components.stack.caller);
 }
 
-function raises(exception, code, context) {
+assert.raises = function(exception, code, context) {
     var raised = false;
     try {
         code.call(context);
@@ -101,14 +111,14 @@ function raises(exception, code, context) {
             Components.stack.caller);
 }
 
-function matches(pattern, string) {
+assert.matches = function(pattern, string) {
     if(!(string.match(pattern)))
         throw new AssertionFailed(
             'Expected something matching ' + pattern + ', got "' + string + '"',
             Components.stack.caller);
 }
 
-function fail(message) {
+assert.fail = function(message) {
     throw new AssertionFailed(message, Components.stack.caller);
 }
 
@@ -117,4 +127,5 @@ function AssertionFailed(message, caller) {
     this.message = message;
     this.stack += '()@' + caller.filename + ':' + caller.lineNumber + '\n';
 }
+
 AssertionFailed.prototype = new Error();

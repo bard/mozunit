@@ -51,7 +51,6 @@
         width="800" height="600"
         persist="width height">
 
-  <script type="application/x-javascript" src="chrome://mozunit/content/lib/module_manager.js"/>
   <script type="application/x-javascript" src="chrome://mozunit/content/ui.js"/>
 
   <!-- COMMANDS -->

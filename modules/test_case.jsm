@@ -35,6 +35,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var EXPORTED_SYMBOLS = [
+    'TestCase',
+    'Specification'
+];
+
 
 /**
  * Invocation:
@@ -57,34 +62,22 @@
  *
  */
 
-function constructor(title, opts) {
+function TestCase(title, opts) {
     opts = opts || {};
 
     this._title = title;
     this._runStrategy = opts.runStrategy;
-    this._tests = [];
-    this._reportHandler = _defaultReportHandler;
-
-    this.__defineSetter__(
-        'tests', function(hash) {
-            this.setTests(hash);
-        });
-
-    this.__defineSetter__(
-        'stateThat', function(hash) {
-            this.setTests(hash);
-        });
-
-    this.__defineSetter__(
-        'reportHandler', function(callback) {
-            this._reportHandler = callback;
-        });
-
-    this.__defineGetter__(
-        'title', function() {
-            return this._title;
-        });
+    this._tests = null;
 }
+
+TestCase.prototype.__defineSetter__('tests', function(hash) this.setTests(hash));
+
+TestCase.prototype.__defineSetter__('stateThat', function(hash) this.setTests(hash));
+
+TestCase.prototype.__defineSetter__('reportHandler', function(fn) this._reportHandler = fn);
+
+TestCase.prototype.__defineGetter__('title', function() this._title);
+
 
 /**
  * Define test cases, optionally with setup and teardown.
@@ -94,11 +87,11 @@ function constructor(title, opts) {
  *         setUp: function() {
  *             this.plusFactor = 4;
  *         },
- *     
+ *
  *         testOperation: function() {
  *             assert.equals(8, 2+2+this.plusFactor);
  *         },
- *     
+ *
  *         tearDown: function() {
  *             // release resources if necessary
  *         }
@@ -127,8 +120,9 @@ function constructor(title, opts) {
  *     }
  */
 
-function setTests(hash) {
-    for(var desc in hash) 
+TestCase.prototype.setTests = function(hash) {
+    this._tests = [];
+    for(var desc in hash)
         if(desc == 'setUp' || desc == 'given')
             this._setUp = hash[desc];
         else if(desc == 'tearDown')
@@ -148,13 +142,30 @@ function setTests(hash) {
  *
  */
 
-function run() {
-    this[this._runStrategy == 'async' ? '_asyncRun1' : '_syncRun1']
-	(
-	 this._tests,
-	 this._setUp != null ? this._setUp : null,
-	 this._tearDown != null ? this._tearDown : null,
-	 this._reportHandler);
+TestCase.prototype.run = function(opts) {
+    opts = opts || {};
+
+    var test, context, report;
+    var result = true;
+    for(var i=0, l=this._tests.length; i<l; i++) {
+        test = this._tests[i];
+        context = {};
+        report = _exec1(test.code, this._setUp, this._tearDown, context);
+        report.testOwner = this;
+        report.testDescription = test.desc;
+        report.testCode = test.code;
+        report.testIndex = i+1;
+        report.testCount = l;
+        report.toString = function() _defaultReportFormatter(this);
+
+        if(report.result != 'success')
+            result = false;
+
+        if(typeof(opts.onResult) == 'function')
+            opts.onResult(report);
+    }
+
+    return result;
 }
 
 /**
@@ -162,7 +173,7 @@ function run() {
  *
  */
 
-function setUp(fn) {
+TestCase.prototype.setUp = function(fn) {
     this._setUp = fn;
 }
 
@@ -172,7 +183,7 @@ function setUp(fn) {
  *
  */
 
-function test(desc, code) {
+TestCase.prototype.test = function(desc, code) {
     this._tests.push([desc, code]);
 }
 
@@ -181,7 +192,7 @@ function test(desc, code) {
  *
  */
 
-function tearDown(fn) {
+TestCase.prototype.tearDown = function(fn) {
     this._tearDown = fn;
 }
 
@@ -194,8 +205,8 @@ function tearDown(fn) {
  *
  */
 
-function verify() {
-    this.run();
+TestCase.prototype.verify = function() {
+    return this.run.apply(this, arguments);
 }
 
 /**
@@ -203,7 +214,7 @@ function verify() {
  *
  */
 
-function given(fn) {
+TestCase.prototype.given = function(fn) {
     this.setUp(fn);
 }
 
@@ -212,11 +223,11 @@ function given(fn) {
  *
  */
 
-function states(desc, fn) {
+TestCase.prototype.states = function(desc, fn) {
     this.test(desc, fn);
 }
 
-/*  Side effect-free functions. They're the ones who do the real job. :-) */  
+/*  Side effect-free functions. They're the ones who do the real job. :-) */
 
 function _formatStackTrace1(exception) {
     function comesFromFramework(call) {
@@ -225,7 +236,7 @@ function _formatStackTrace1(exception) {
                 // Following is VERY kludgy
                 call.match(/\(function \(exitResult\) \{if \(eventHandlers/))
     }
-    
+
     var trace = '';
     if(exception.stack) {
         var calls = exception.stack.split('\n');
@@ -272,110 +283,22 @@ function _exec1(code, setUp, tearDown, context) {
     return report;
 }
 
-function _syncRun1(tests, setUp, tearDown, reportHandler) {
-    var test, context, report;
-    for(var i=0, l=tests.length; i<l; i++) {
-        test = tests[i];
-        context = {};
-        report = _exec1(test.code, setUp, tearDown, context);
-        report.testOwner = this;
-        report.testDescription = test.desc;
-        report.testCode = test.code;
-        report.testIndex = i+1;
-        report.testCount = l;
-        reportHandler(report);
-    }
-}
-
-if(false) {
-    // asynchronous running is not ready, don't make it available.
-function _asyncRun1(tests, setUp, tearDown, reportHandler, onTestRunFinished) {
-    var testIndex = 0;
-    var context;
-    var report;
-
-    var stateTransitions = {
-        start:      { ok: 'doSetUp' },
-        doSetUp:    { ok: 'doTest', ko: 'doReport' },
-        doTest:     { ok: 'doReport' },
-        doReport:   { ok: 'doTearDown' },
-        doTearDown: { ok: 'nextTest', ko: 'nextTest' },
-        nextTest:   { ok: 'doSetUp', ko: 'finished' },
-        finished:   { }
-    }
-
-    _this = this;
-    var stateHandlers = {
-        start: function(continuation) {
-            continuation('ok')
-        },
-        doSetUp: function(continuation) {
-            context = {};
-            report = {};
-            try {
-                setUp.call(context, continuation);
-            } catch(e) {
-                report.result = 'error';
-                report.exception = e;
-                report.testDescription = 'Setup';
-                continuation('ko');
-            }
-        },
-        doTest: function(continuation) {
-            var test;
-            test = tests[testIndex];
-            report = _exec1(test.code, null, null, context);
-            report.testDescription = test.desc;
-            continuation('ok');
-        },
-        doReport: function(continuation) {
-            report.testOwner = _this;
-            report.testIndex = testIndex + 1;
-            report.testCount = tests.length;
-            reportHandler(report);
-            continuation('ok');
-        },
-        doTearDown: function(continuation) { // exceptions in setup/teardown are not reported correctly
-            try {
-                // perhaps should pass continuation to tearDown as well
-                tearDown.call(context); 
-                continuation('ok');
-            } catch(e) {
-                continuation('ko');
-            }
-        },
-        nextTest: function(continuation) {
-            testIndex += 1;
-            tests[testIndex] ? continuation('ok') : continuation('ko');
-        },
-        finished: function(continuation) {
-            if(onTestRunFinished)
-                onTestRunFinished();
-        }
-    }
-
-    fsm.go('start', {}, stateHandlers, stateTransitions, []);
-}
-}
-
-function _defaultReportHandler(report) {
+function _defaultReportFormatter(report) {
     if(report.result == 'success')
         return;
-        
+
     var printout = '';
     printout += 'Test ' + report.testIndex + '/' + report.testCount + ': ';
     printout += report.testDescription + '\n';
-        
+
     printout += report.result.toUpperCase();
     if(report.exception) {
         printout += ': ' + report.exception + '\n';
         printout += _formatStackTrace1(report.exception);
     }
     printout += '\n';
-        
 
-    if(typeof(repl) == 'object')
-        repl.print(printout);
-    else
-        dump(printout);
+    return printout;
 }
+
+var Specification = TestCase;

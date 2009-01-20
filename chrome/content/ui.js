@@ -36,11 +36,18 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-var loader = Components
-    .classes['@mozilla.org/moz/jssubscript-loader;1']
-    .getService(Components.interfaces.mozIJSSubScriptLoader);
-var module = new ModuleManager(['chrome://mozunit/content']);
-var mozunit = module.require('package', 'package');
+var Cc = Components.classes;
+var Ci = Components.interfaces;
+var Cu = Components.utils;
+
+
+var loader = Cc['@mozilla.org/moz/jssubscript-loader;1']
+    .getService(Ci.mozIJSSubScriptLoader);
+
+var mozunit = {};
+Cu.import('resource://mozunit/test_case.jsm', mozunit);
+Cu.import('resource://mozunit/assertions.jsm', mozunit);
+
 
 /* UTILITIES */
 
@@ -176,7 +183,7 @@ function finish() {
 function writeTemplate(filePath) {
     var data =
         "var TestCase = mozunit.TestCase;\n\
-var assert = mozunit.assertions;\n\
+var assert = mozunit.asserto;\n\
 \n\
 var tc = new TestCase('testcase description here');\n\n\
 tc.tests = {\n\
@@ -300,17 +307,16 @@ function run() {
 
     try {
         var suite = {};
-        
+
         loader.loadSubScript(_('file').value, suite);
 
         var testsFound  = false;
 
         for(var thing in suite) {
-            if(suite[thing].__proto__ == mozunit.TestCase.prototype) {
+            if(suite[thing] && suite[thing].__proto__ == mozunit.TestCase.prototype) {
                 testsFound = true;
                 var testCase = suite[thing];
-                testCase.reportHandler = testReportHandler;
-                testCase.run();
+                testCase.run({ onResult: testReportHandler });
             }
         }
 
