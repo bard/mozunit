@@ -285,7 +285,7 @@ function _exec1(code, setUp, tearDown, context) {
 
 function _defaultReportFormatter(report) {
     if(report.result == 'success')
-        return;
+        return '';
 
     var printout = '';
     printout += 'Test ' + report.testIndex + '/' + report.testCount + ': ';
