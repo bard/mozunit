@@ -215,17 +215,21 @@ function newTestCase() {
     }
 }
 
-function openTestCase() {
+function openTestCase(url) {
     var pref = Components.classes["@mozilla.org/preferences-service;1"]
         .getService(Components.interfaces.nsIPrefBranch);
-    try {
-	var startDir = pref
-	    .getComplexValue("extensions.mozunit.lastdir", 
-			     Components.interfaces.nsILocalFile, {});
-    } catch(e) {
-	var startDir = null;
+
+    if(!url) {
+        try {
+	    var startDir = pref
+	        .getComplexValue("extensions.mozunit.lastdir",
+			         Components.interfaces.nsILocalFile, {});
+        } catch(e) {
+	    var startDir = null;
+        }
+        url = pickFileUrl('', startDir);
     }
-    var url = pickFileUrl('', startDir);
+
     if(url) {
         _('file').value = url;
 	var file = fileUrlToFile(url);
